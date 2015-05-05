@@ -30,7 +30,7 @@ mainScreen.prototype = {
 		this.gameWidth = 500;
 		this.gameHeight = 350;
 
-        this.tileArray = [];				// array with all game tiles
+		this.tileArray = [];				// array with all game tiles
         this.tileGroup; 				// group containing all tiles
         this.movingTileGroup;               // group containing the moving tile
 
@@ -85,9 +85,23 @@ mainScreen.prototype = {
 		//Text for wave and money
 		this.waveText = game.add.text(10, this.tileSize/4, "Wave " + this.wave, {font: '20px Arial', fill: '#fff'});
 		
-		this.moneyText = game.add.text(100, this.tileSize/4, "$" + this.money, {font: '20px Arial', fill: '#fff'});
+		this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money, { font: '20px Arial', fill: '#fff' });
+
+	    game.input.onDown.add(this.click, this);
 	},
 	
+	click: function()
+	{
+	        var x = game.input.worldX;
+	        var y = game.input.worldY;
+
+	        for (var i = 0; i < this.fieldSizeRow; i++) {
+	            for (var j = 0; j < this.fieldSizeCol; j++) {
+	                console.log(this.tileArray[i][j].hasBeenClicked(x,y));
+	            }
+	        }
+	},
+
 	//Selects a tower to place
 	buyTower: function(button){
 		//Testing to make sure its selecting the right frame
@@ -96,4 +110,6 @@ mainScreen.prototype = {
 		//Placing logic goes here
 		//Use button to determine which was pressed
 	}
+
+
 };
