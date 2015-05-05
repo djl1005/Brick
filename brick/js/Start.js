@@ -18,7 +18,7 @@ menuScreen.prototype = {
 
         this.background = game.add.sprite(0, 0, 'bg');
 
-        var playButton = this.game.add.button(150, 175, "play", this.playGame, this);
+        var playButton = this.game.add.button(250, 175, "play", this.playGame, this);
         playButton.anchor.setTo(0.5, 0.5);
     },
 
