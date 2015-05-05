@@ -38,32 +38,55 @@ mainScreen.prototype = {
 		this.uiBot = null;	//base for the bottom ui
 		
 		this.frameArray = [];	//array containing the tower frames
+		this.towerArray = [];
+		this.towerSpriteArray = [];
+		this.enemyArray = [];
+		this.enemySpriteArray = [];
 		
 		this.wave = 0;
 		this.money = 0;
 
+		this.tower = {
+		    hp: 5,
+		    atk: 1
+		};
+
+		this.enemy = {
+		    hp: 5,
+            atk: 1,
+		    x: 500,
+		    y: 175
+		};
+
+		for (var i = 0; i < 1; i++) {
+		    this.enemyArray[i] = this.enemy;
+		}
     },
 	
 	create: function(){
 	
 		//Grass Tiles
-        for (var i = 0; i < this.fieldSizeRow; i++) {
-            this.tileArray[i] = [];
-            for (var j = 0; j < this.fieldSizeCol; j++) {
-                var theTile = game.add.sprite((j * this.tileSize) + this.tileSize / 2, (i * this.tileSize) + this.tileSize / 2 + 50, "tiles");
-                theTile.frame = 0;
-                theTile.scale.x = 0.5;
-                theTile.scale.y = 0.5;
-                theTile.halfwidth = this.tileSize / 2;
-                theTile.anchor.setTo(0.5, 0.5);
-                theTile.hasBeenClicked = function(x,y)
-                {
-                    return this.x + this.halfwidth > x && this.x - this.halfwidth < x && this.y + this.halfwidth > y && this.y - this.halfwidth < y;
-                }
-                this.tileArray[i][j] = theTile;
-                this.tileGroup.add(theTile);
-            }
-        }
+	    for (var i = 0; i < this.fieldSizeRow; i++) {
+	        this.tileArray[i] = [];
+	        for (var j = 0; j < this.fieldSizeCol; j++) {
+	            var theTile = game.add.sprite((j * this.tileSize) + this.tileSize / 2, (i * this.tileSize) + this.tileSize / 2 + 50, "tiles");
+	            theTile.frame = 0;
+	            theTile.scale.x = 0.5;
+	            theTile.scale.y = 0.5;
+	            theTile.halfwidth = this.tileSize / 2;
+	            theTile.anchor.setTo(0.5, 0.5);
+	            theTile.hasBeenClicked = function (x, y) {
+	                return this.x + this.halfwidth > x && this.x - this.halfwidth < x && this.y + this.halfwidth > y && this.y - this.halfwidth < y;
+	            }
+	            this.tileArray[i][j] = theTile;
+	            this.tileGroup.add(theTile);
+	        }
+	    }
+
+        //Enemy
+	    for (var i = 0; i < this.enemyArray.length; i++) {
+	        this.enemySpriteArray[i] = game.add.sprite(this.enemyArray[i].x, this.enemyArray[i].y, "play");
+	    }
 		
 		//UI top and bottom
 		this.uiTop = game.add.sprite(0, 0, "uiBase");
@@ -89,6 +112,17 @@ mainScreen.prototype = {
 
 	    game.input.onDown.add(this.click, this);
 	},
+
+	update: function() {
+	    //Enemy
+	    for (var i = 0; i < this.enemyArray.length; i++) {
+	        this.enemySpriteArray[i].position.x += -1;
+
+	        if (this.enemyArray[i].hp <= 0) {
+	            this.enemySpriteArray[i].kill();
+	        }
+	    }
+	},
 	
 	click: function()
 	{
@@ -97,7 +131,8 @@ mainScreen.prototype = {
 
 	        for (var i = 0; i < this.fieldSizeRow; i++) {
 	            for (var j = 0; j < this.fieldSizeCol; j++) {
-	                console.log(this.tileArray[i][j].hasBeenClicked(x,y));
+	                console.log(this.tileArray[i][j].hasBeenClicked(x, y));
+	                this.towerSpriteArray.push(game.add.sprite(x, y, 'play'));
 	            }
 	        }
 	},
@@ -108,7 +143,7 @@ mainScreen.prototype = {
 		console.log("Tower Button " + button.num + " pressed.");
 		
 		//Placing logic goes here
-		//Use button to determine which was pressed
+	    //Use button to determine which was pressed
 	}
 
 
