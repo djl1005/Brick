@@ -18,6 +18,8 @@ mainScreen.prototype = {
         game.load.spritesheet("tiles", "media/tiles.png", 100, 100);
 		game.load.image("uiBase", "media/uiBase.png", 1000, 100);
 		game.load.image("frame", "media/towerFrame.png", 50, 50);
+		game.load.image("punkA", "media/punkA.png", 50, 50);
+		game.load.image("towerA", "media/towerA.png", 50, 50);
     },
 
     init: function () {
@@ -48,19 +50,19 @@ mainScreen.prototype = {
 
 		this.tower = {
 		    hp: 5,
-		    atk: 1
+		    atk: 1,
+			x: 0,
+			y: 0
 		};
 
 		this.enemy = {
+			startHP: 5,
 		    hp: 5,
             atk: 1,
 		    x: 500,
-		    y: 175
+		    y: 175,
+			active: true
 		};
-
-		for (var i = 0; i < 1; i++) {
-		    this.enemyArray[i] = this.enemy;
-		}
     },
 	
 	create: function(){
@@ -84,9 +86,7 @@ mainScreen.prototype = {
 	    }
 
         //Enemy
-	    for (var i = 0; i < this.enemyArray.length; i++) {
-	        this.enemySpriteArray[i] = game.add.sprite(this.enemyArray[i].x, this.enemyArray[i].y, "play");
-	    }
+		this.spawnEnemy(2);
 		
 		//UI top and bottom
 		this.uiTop = game.add.sprite(0, 0, "uiBase");
@@ -115,26 +115,44 @@ mainScreen.prototype = {
 
 	update: function() {
 	    //Enemy
+		this.damageEnemies();
 	    for (var i = 0; i < this.enemyArray.length; i++) {
-	        this.enemySpriteArray[i].position.x += -1;
-
-	        if (this.enemyArray[i].hp <= 0) {
-	            this.enemySpriteArray[i].kill();
-	        }
+			//Move the enemy
+			this.enemySpriteArray[i].position.x += -1;
+			this.enemyArray[i].x += -1;
+	
+			if (this.enemyArray[i].hp <= 0) {
+				//Give the player some cash
+				this.money += this.enemyArray[i].startHP;
+				//Kill the enemy
+				this.enemySpriteArray[i].kill();
+				var dead = this.enemyArray.indexOf(this.enemyArray[i]);
+				this.enemyArray.splice( dead, 1 );
+				this.enemySpriteArray.splice( dead, 1 );
+			}
 	    }
+		
+		//For now, spawn  more enemies when none are left
+		if(this.enemyArray.length == 0){
+			this.spawnEnemy(2);
+		}
+		
+		//Update Money Text
+		this.moneyText.setText("$" + this.money);
+		
 	},
 	
 	click: function()
 	{
 	        var x = game.input.worldX;
 	        var y = game.input.worldY;
-
-	        for (var i = 0; i < this.fieldSizeRow; i++) {
-	            for (var j = 0; j < this.fieldSizeCol; j++) {
-	                console.log(this.tileArray[i][j].hasBeenClicked(x, y));
-	                this.towerSpriteArray.push(game.add.sprite(x, y, 'play'));
-	            }
-	        }
+			//Temporarily spawn towers at no cost
+			this.spawnTower(x, y);
+			for (var i = 0; i < this.fieldSizeRow; i++) {
+				for (var j = 0; j < this.fieldSizeCol; j++) {
+					console.log(this.tileArray[i][j].hasBeenClicked(x, y));
+				}
+			}
 	},
 
 	//Selects a tower to place
@@ -144,7 +162,72 @@ mainScreen.prototype = {
 		
 		//Placing logic goes here
 	    //Use button to determine which was pressed
-	}
+	},
+	
+	//Spawn a number of enemies
+	spawnEnemy: function(num){
+		for(var i = 0; i < num; i++){
+			//Get the spawn row
+			var spawnLoc = Math.floor((Math.random() * 5) + 1) * this.tileSize;
+			//Make a new enemy
+			var tempEnemy = JSON.parse(JSON.stringify(this.enemy));
+			tempEnemy.y = spawnLoc;
+			this.enemyArray.push(tempEnemy);
+			//Add the sprite
+			var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, "punkA");
+			this.enemySpriteArray.push(tempSprite);
+		}
+	},
+	
+	//Spawn a tower
+	spawnTower: function(_x, _y){
+		var x = Math.floor(_x/this.tileSize) * this.tileSize;
+		var y = Math.floor(_y/this.tileSize) * this.tileSize
+		var goodSpawn = true;
+		//Are we in the field area?
+		if( y >= this.tileSize && y <= this.tileSize * (this.fieldSizeRow)){
+			//Are there other towers?
+			if(this.towerArray.length != 0){
+			//Check to make sure no other tower is on that tile
+				var arrayLength = this.towerArray.length;
+				for(var i = 0; i < arrayLength; i++){
+					if(this.towerArray[i].x == x && this.towerArray[i].y == y){
+						goodSpawn = false;
+					}
+				}
+			}
+			
+			//Is the spawn legal?
+			if(goodSpawn){
+				//Make a new tower
+				var tempTower = JSON.parse(JSON.stringify(this.tower));
+				tempTower.x = x;
+				tempTower.y = y;
+				this.towerArray.push(tempTower);
+				//Add the sprite
+				var tempSprite = game.add.sprite(tempTower.x, tempTower.y, 'towerA');
+				this.towerSpriteArray.push(tempSprite);
+			}
+		}
+	},
 
+	//Deal damage to enemies
+	damageEnemies: function(){
+		for(var i = 0; i < this.enemyArray.length; i++){
+			for(var j = 0; j < this.towerArray.length; j++){
+				//Currently enemies are damaged when touching towers
+				//Same row?
+				if(this.enemyArray[i].y == this.towerArray[j].y)
+				{
+					//Same tile?
+					var dist = this.enemyArray[i].x - this.towerArray[j].x;
+					if(dist <= this.tileSize){
+						//Damage the enemy
+						this.enemyArray[i].hp -= this.towerArray[j].atk;
+					}
+				}
+			}
+		}
+	}
 
 };
