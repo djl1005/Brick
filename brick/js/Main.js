@@ -3,23 +3,25 @@
 var mainScreen = function (game) {
     this.tileArray = null;
     this.tileGroup = null;
+    this.brickGroup;
 	
-	this.frameArray = null;
-	this.frameGroup = null;
+    this.frameArray = null;
+    this.frameGroup = null;
 	
-	this.wave = null;	//What wave we're on
-	this.waveText = null;
-	this.money = null;	//How much money you have
-	this.moneyText = null;
+    this.wave = null;	//What wave we're on
+    this.waveText = null;
+    this.money = null;	//How much money you have
+    this.moneyText = null;
 }
 
 mainScreen.prototype = {
     preload: function () {
         game.load.spritesheet("tiles", "media/tiles.png", 100, 100);
-		game.load.image("uiBase", "media/uiBase.png", 1000, 100);
-		game.load.image("frame", "media/towerFrame.png", 50, 50);
-		game.load.image("punkA", "media/punkA.png", 50, 50);
-		game.load.image("towerA", "media/towerA.png", 50, 50);
+        game.load.image("uiBase", "media/uiBase.png", 1000, 100);
+        game.load.image("frame", "media/towerFrame.png", 50, 50);
+        game.load.image("punkA", "media/punkA.png", 50, 50);
+        game.load.image("towerA", "media/towerA.png", 50, 50);
+        game.load.image("brick", "media/play.png", 50 ,50); // temp for brick
     },
 
     init: function () {
@@ -29,205 +31,173 @@ mainScreen.prototype = {
         this.fieldSizeCol = 10;
         this.tileTypes = 10;				// different kind of tiles allowed
         this.score = 0;
-		this.gameWidth = 500;
-		this.gameHeight = 350;
+        this.gameWidth = 500;
+        this.gameHeight = 350;
 
-		this.tileArray = [];				// array with all game tiles
+        this.tileArray = [];				// array with all game tiles
         this.tileGroup; 				// group containing all tiles
-        this.movingTileGroup;               // group containing the moving tile
 
-		this.uiTop = null;	//base for the top ui
-		this.uiBot = null;	//base for the bottom ui
+        this.uiTop = null;	//base for the top ui
+        this.uiBot = null;	//base for the bottom ui
 		
-		this.frameArray = [];	//array containing the tower frames
-		this.towerArray = [];
-		this.towerSpriteArray = [];
-		this.enemyArray = [];
-		this.enemySpriteArray = [];
+        this.frameArray = [];	//array containing the tower frames
+        this.towerArray = [];
+        this.towerSpriteArray = [];
+        this.enemyArray = [];
+        this.enemySpriteArray = [];
 		
-		this.wave = 0;
-		this.money = 0;
+        this.wave = 0;
+        this.money = 0;
 
-		this.tower = {
-		    hp: 5,
-		    atk: 1,
-			x: 0,
-			y: 0
-		};
 
-		this.enemy = {
-			startHP: 5,
-		    hp: 5,
+        this.enemy = {
+            startHP: 5,
+            hp: 5,
             atk: 1,
-		    x: 500,
-		    y: 175,
-			active: true
-		};
+            x: 500,
+            y: 175,
+            active: true
+        };
     },
 	
-	create: function(){
+    create: function(){
 	
-		//Grass Tiles
-	    for (var i = 0; i < this.fieldSizeRow; i++) {
-	        this.tileArray[i] = [];
-	        for (var j = 0; j < this.fieldSizeCol; j++) {
-	            var theTile = game.add.sprite((j * this.tileSize) + this.tileSize / 2, (i * this.tileSize) + this.tileSize / 2 + 50, "tiles");
-	            theTile.frame = 0;
-	            theTile.scale.x = 0.5;
-	            theTile.scale.y = 0.5;
-	            theTile.halfwidth = this.tileSize / 2;
-	            theTile.anchor.setTo(0.5, 0.5);
-	            theTile.hasBeenClicked = function (x, y) {
-	                return this.x + this.halfwidth > x && this.x - this.halfwidth < x && this.y + this.halfwidth > y && this.y - this.halfwidth < y;
-	            }
-	            this.tileArray[i][j] = theTile;
-	            this.tileGroup.add(theTile);
-	        }
-	    }
+        //Grass Tiles
+        for (var i = 0; i < this.fieldSizeRow; i++) {
+            this.tileArray[i] = [];
+            for (var j = 0; j < this.fieldSizeCol; j++) {
+
+                var tempTile = new Tile((j * this.tileSize) + this.tileSize / 2, (i * this.tileSize) + this.tileSize / 2 + 50, this.tileSize, 0);
+
+                this.tileArray[i][j] = tempTile;
+                this.tileGroup.add(tempTile.sprite);
+            }
+        }
 
         //Enemy
-		this.spawnEnemy(2);
+        this.spawnEnemy(2);
 		
-		//UI top and bottom
-		this.uiTop = game.add.sprite(0, 0, "uiBase");
-		this.uiTop.scale.x = 0.5;
-		this.uiTop.scale.y = 0.5;
+        //UI top and bottom
+        this.uiTop = game.add.sprite(0, 0, "uiBase");
+        this.uiTop.scale.x = 0.5;
+        this.uiTop.scale.y = 0.5;
 		
 		
-		this.uiBot = game.add.sprite(0, this.gameHeight - this.tileSize, "uiBase");
-		this.uiBot.scale.x = 0.5;
-		this.uiBot.scale.y = 0.5;
+        this.uiBot = game.add.sprite(0, this.gameHeight - this.tileSize, "uiBase");
+        this.uiBot.scale.x = 0.5;
+        this.uiBot.scale.y = 0.5;
 		
-		//Frames for bottom ui
-		for(var i = 0; i < this.fieldSizeCol; i++){
-			var frame = game.add.button(i * this.tileSize, this.gameHeight - this.tileSize, "frame", this.buyTower, this);
-			frame.num = i;
-			this.frameArray[i] = frame;
-		}
+        //Frames for bottom ui
+        for(var i = 0; i < this.fieldSizeCol; i++){
+            var frame = game.add.button(i * this.tileSize, this.gameHeight - this.tileSize, "frame", this.buyTower, this);
+            frame.num = i;
+            this.frameArray[i] = frame;
+        }
 		
-		//Text for wave and money
-		this.waveText = game.add.text(10, this.tileSize/4, "Wave " + this.wave, {font: '20px Arial', fill: '#fff'});
+        //Text for wave and money
+        this.waveText = game.add.text(10, this.tileSize/4, "Wave " + this.wave, {font: '20px Arial', fill: '#fff'});
 		
-		this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money, { font: '20px Arial', fill: '#fff' });
+        this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money, { font: '20px Arial', fill: '#fff' });
 
-	    game.input.onDown.add(this.click, this);
-	},
+        game.input.onDown.add(this.click, this);
+    },
 
-	update: function() {
-	    //Enemy
-		this.damageEnemies();
-	    for (var i = 0; i < this.enemyArray.length; i++) {
-			//Move the enemy
-			this.enemySpriteArray[i].position.x += -1;
-			this.enemyArray[i].x += -1;
+    update: function() {
+        //Enemy
+        this.damageEnemies();
+        for (var i = 0; i < this.enemyArray.length; i++) {
+            //Move the enemy
+            this.enemySpriteArray[i].position.x += -1;
+            this.enemyArray[i].x += -1;
 	
-			if (this.enemyArray[i].hp <= 0) {
-				//Give the player some cash
-				this.money += this.enemyArray[i].startHP;
-				//Kill the enemy
-				this.enemySpriteArray[i].kill();
-				var dead = this.enemyArray.indexOf(this.enemyArray[i]);
-				this.enemyArray.splice( dead, 1 );
-				this.enemySpriteArray.splice( dead, 1 );
-			}
-	    }
+            if (this.enemyArray[i].hp <= 0) {
+                //Give the player some cash
+                this.money += this.enemyArray[i].startHP;
+                //Kill the enemy
+                this.enemySpriteArray[i].kill();
+                var dead = this.enemyArray.indexOf(this.enemyArray[i]);
+                this.enemyArray.splice( dead, 1 );
+                this.enemySpriteArray.splice( dead, 1 );
+            }
+        }
 		
-		//For now, spawn  more enemies when none are left
-		if(this.enemyArray.length == 0){
-			this.spawnEnemy(2);
-		}
+        //For now, spawn  more enemies when none are left
+        if(this.enemyArray.length == 0){
+            this.spawnEnemy(2);
+        }
 		
-		//Update Money Text
-		this.moneyText.setText("$" + this.money);
+        //Update Money Text
+        this.moneyText.setText("$" + this.money);
 		
-	},
+    },
 	
-	click: function()
-	{
-	        var x = game.input.worldX;
-	        var y = game.input.worldY;
-			//Temporarily spawn towers at no cost
-			this.spawnTower(x, y);
-			for (var i = 0; i < this.fieldSizeRow; i++) {
-				for (var j = 0; j < this.fieldSizeCol; j++) {
-					console.log(this.tileArray[i][j].hasBeenClicked(x, y));
-				}
-			}
-	},
-
-	//Selects a tower to place
-	buyTower: function(button){
-		//Testing to make sure its selecting the right frame
-		console.log("Tower Button " + button.num + " pressed.");
-		
-		//Placing logic goes here
-	    //Use button to determine which was pressed
-	},
-	
-	//Spawn a number of enemies
-	spawnEnemy: function(num){
-		for(var i = 0; i < num; i++){
-			//Get the spawn row
-			var spawnLoc = Math.floor((Math.random() * 5) + 1) * this.tileSize;
-			//Make a new enemy
-			var tempEnemy = JSON.parse(JSON.stringify(this.enemy));
-			tempEnemy.y = spawnLoc;
-			this.enemyArray.push(tempEnemy);
-			//Add the sprite
-			var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, "punkA");
-			this.enemySpriteArray.push(tempSprite);
-		}
-	},
-	
-	//Spawn a tower
-	spawnTower: function(_x, _y){
-		var x = Math.floor(_x/this.tileSize) * this.tileSize;
-		var y = Math.floor(_y/this.tileSize) * this.tileSize
-		var goodSpawn = true;
-		//Are we in the field area?
-		if( y >= this.tileSize && y <= this.tileSize * (this.fieldSizeRow)){
-			//Are there other towers?
-			if(this.towerArray.length != 0){
-			//Check to make sure no other tower is on that tile
-				var arrayLength = this.towerArray.length;
-				for(var i = 0; i < arrayLength; i++){
-					if(this.towerArray[i].x == x && this.towerArray[i].y == y){
-						goodSpawn = false;
-					}
-				}
-			}
+    click: function()
+    {
+        var x = game.input.worldX;
+        var y = game.input.worldY;
+        //Temporarily spawn towers at no cost
 			
-			//Is the spawn legal?
-			if(goodSpawn){
-				//Make a new tower
-				var tempTower = JSON.parse(JSON.stringify(this.tower));
-				tempTower.x = x;
-				tempTower.y = y;
-				this.towerArray.push(tempTower);
-				//Add the sprite
-				var tempSprite = game.add.sprite(tempTower.x, tempTower.y, 'towerA');
-				this.towerSpriteArray.push(tempSprite);
-			}
-		}
-	},
+        for (var i = 0; i < this.fieldSizeRow; i++) {
+            for (var j = 0; j < this.fieldSizeCol; j++) {
+                if (this.tileArray[i][j].hasBeenClicked(x, y)) {
+                    this.spawnTower(x, y);
+                }
+            }
+        }
+    },
+
+    //Selects a tower to place
+    buyTower: function(button){
+        //Testing to make sure its selecting the right frame
+        console.log("Tower Button " + button.num + " pressed.");
+		
+        //Placing logic goes here
+        //Use button to determine which was pressed
+    },
+	
+    //Spawn a number of enemies
+    spawnEnemy: function(num){
+        for(var i = 0; i < num; i++){
+            //Get the spawn row
+            var spawnLoc = Math.floor((Math.random() * 5) + 1) * this.tileSize;
+            //Make a new enemy
+            var tempEnemy = JSON.parse(JSON.stringify(this.enemy));
+            tempEnemy.y = spawnLoc;
+            this.enemyArray.push(tempEnemy);
+            //Add the sprite
+            var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, "punkA");
+            this.enemySpriteArray.push(tempSprite);
+        }
+    },
+	
+    //Spawn a tower
+    spawnTower: function(_x, _y){
+        var x = Math.floor(_x/this.tileSize) * this.tileSize;
+        var y = Math.floor(_y / this.tileSize) * this.tileSize;
+
+        var tempTower = new Tower(x, y, 5, 1, 'towerA');
+
+        this.towerArray.push(tempTower);
+        this.towerSpriteArray.push(tempTower.sprite);
+},
 
 	//Deal damage to enemies
-	damageEnemies: function(){
-		for(var i = 0; i < this.enemyArray.length; i++){
-			for(var j = 0; j < this.towerArray.length; j++){
-				//Currently enemies are damaged when touching towers
-				//Same row?
-				if(this.enemyArray[i].y == this.towerArray[j].y)
-				{
-					//Same tile?
-					var dist = this.enemyArray[i].x - this.towerArray[j].x;
-					if(dist <= this.tileSize){
-						//Damage the enemy
-						this.enemyArray[i].hp -= this.towerArray[j].atk;
-					}
-				}
-			}
-		}
-	}
+damageEnemies: function(){
+    for(var i = 0; i < this.enemyArray.length; i++){
+        for(var j = 0; j < this.towerArray.length; j++){
+            //Currently enemies are damaged when touching towers
+            //Same row?
+            if(this.enemyArray[i].y == this.towerArray[j].y)
+            {
+                //Same tile?
+                var dist = this.enemyArray[i].x - this.towerArray[j].x;
+                if(dist <= this.tileSize){
+                    //Damage the enemy
+                    this.enemyArray[i].hp -= this.towerArray[j].atk;
+                }
+            }
+        }
+    }
+}
 
 };
