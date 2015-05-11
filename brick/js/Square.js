@@ -6,7 +6,7 @@ var Tile = function () {
         this.x = x;
         this.y = y;
         this.size = size;
-        this.tower = undefined;
+        this.hasTower = false;
         this.type = type;
         this.sprite = game.add.sprite(x, y, "tiles");
 

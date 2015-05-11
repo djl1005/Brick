@@ -39,6 +39,7 @@ mainScreen.prototype = {
 
         this.uiTop = null;	//base for the top ui
         this.uiBot = null;	//base for the bottom ui
+		this.towerASprite = null;
 		
         this.frameArray = [];	//array containing the tower frames
         this.towerArray = [];
@@ -46,8 +47,10 @@ mainScreen.prototype = {
         this.enemyArray = [];
         this.enemySpriteArray = [];
 		
+		this.selectedTower = null;
+		
         this.wave = 0;
-        this.money = 0;
+        this.money = 100;
 
 
         this.enemy = {
@@ -86,6 +89,8 @@ mainScreen.prototype = {
         this.uiBot = game.add.sprite(0, this.gameHeight - this.tileSize, "uiBase");
         this.uiBot.scale.x = 0.5;
         this.uiBot.scale.y = 0.5;
+		
+		this.towerASprite = game.add.sprite(0, this.gameHeight - this.tileSize, "towerA");
 		
         //Frames for bottom ui
         for(var i = 0; i < this.fieldSizeCol; i++){
@@ -139,9 +144,11 @@ mainScreen.prototype = {
 			
         for (var i = 0; i < this.fieldSizeRow; i++) {
             for (var j = 0; j < this.fieldSizeCol; j++) {
-                if (this.tileArray[i][j].hasBeenClicked(x, y)) {
-                    this.spawnTower(x, y);
+                if ( !this.tileArray[i][j].hasTower && this.tileArray[i][j].hasBeenClicked(x, y)) {
+                    this.spawnTower(x, y, i, j);
                 }
+				
+				
             }
         }
     },
@@ -153,6 +160,7 @@ mainScreen.prototype = {
 		
         //Placing logic goes here
         //Use button to determine which was pressed
+		this.selectedTower = button.num;
     },
 	
     //Spawn a number of enemies
@@ -171,32 +179,34 @@ mainScreen.prototype = {
     },
 	
     //Spawn a tower
-    spawnTower: function(_x, _y){
+    spawnTower: function(_x, _y, i, j){
         var x = Math.floor(_x/this.tileSize) * this.tileSize;
         var y = Math.floor(_y / this.tileSize) * this.tileSize;
-
-        var tempTower = new Tower(x, y, 5, 1, 'towerA');
-
-        this.towerArray.push(tempTower);
-        this.towerSpriteArray.push(tempTower.sprite);
-},
+		
+		//Check what tower is selected
+		var tempTower = null;
+		if(this.selectedTower == 0){
+			tempTower = new Tower(x, y, 5, 1, 'towerA', 10);
+		}
+		
+		//Spawn the tower and subtract money
+		if(tempTower != null){
+			if(this.money >= tempTower.cost){
+				console.log("Money: " + this.money + ", Tower: " + tempTower.cost);
+				this.towerArray.push(tempTower);
+				this.towerSpriteArray.push(tempTower.sprite);
+				this.money -= tempTower.cost;
+				this.tileArray[i][j].hasTower = true;
+			}
+			else
+				tempTower.sprite.kill();	
+		}
+	},
 
 	//Deal damage to enemies
 damageEnemies: function(){
-    for(var i = 0; i < this.enemyArray.length; i++){
-        for(var j = 0; j < this.towerArray.length; j++){
-            //Currently enemies are damaged when touching towers
-            //Same row?
-            if(this.enemyArray[i].y == this.towerArray[j].y)
-            {
-                //Same tile?
-                var dist = this.enemyArray[i].x - this.towerArray[j].x;
-                if(dist <= this.tileSize){
-                    //Damage the enemy
-                    this.enemyArray[i].hp -= this.towerArray[j].atk;
-                }
-            }
-        }
+    for(var j = 0; j < this.towerArray.length; j++){
+		this.towerArray[j].update(this.enemyArray);
     }
 }
 
