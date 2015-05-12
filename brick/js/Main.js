@@ -48,6 +48,8 @@ mainScreen.prototype = {
         this.towerSpriteArray = [];
         this.enemyArray = [];
         this.enemySpriteArray = [];
+        this.bulletArray = [];
+        this.bulletSpriteArray = [];
 		
 		this.selectedTower = null;
 		
@@ -139,6 +141,11 @@ mainScreen.prototype = {
                 this.towerSpriteArray.splice( dead, 1 );
 			}
 		}
+
+        //Bullets
+		for (var i = 0; i < this.bulletArray.length; i++) {
+		    this.bulletArray[i].move(this.bulletArray, this.bulletSpriteArray, i);
+		}
 		
         //For now, spawn  more enemies when none are left
         if(this.enemyArray.length == 0){
@@ -224,11 +231,11 @@ mainScreen.prototype = {
 	dealDamage: function(dt){
 		//Enemies
 		for(var i = 0; i < this.towerArray.length; i++){
-			this.towerArray[i].update(this.enemyArray, dt);
+			this.towerArray[i].update(this.enemyArray, this.bulletArray, this.bulletSpriteArray, dt);
 		}
 		//Towers
 		for(var i = 0; i < this.enemyArray.length; i++){
-			this.enemyArray[i].update(this.towerArray, dt);
+		    this.enemyArray[i].update(this.towerArray, this.bulletArray, this.bulletSpriteArray, dt);
 		}
 	}
 

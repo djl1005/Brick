@@ -20,7 +20,7 @@
 
     var p = Tower.prototype;
 
-    p.update = function (enemies, dt) {
+    p.update = function (enemies, bullets, bulletSprite, dt) {
 		var currentTime = Date.now();
 		//Can we attack?
 		if(currentTime - this.lastAtk >= this.atkRate){
@@ -49,11 +49,15 @@
 					if(enemies[i].y == this.y)
 					{
 						//New closest enemy?
-						var dist = enemies[i].x - this.x;
-						if(dist <= closestDist && dist >= 0){
-							closestDist = dist;
-							hitEnemy = i;
-						}
+						//var dist = enemies[i].x - this.x;
+						//if(dist <= closestDist && dist >= 0){
+						//	closestDist = dist;
+						//	hitEnemy = i;
+					    //}
+
+					    var bullet = new Bullet(this.x, this.y, this.atk, this.name);
+					    bullets.push(bullet);
+					    bulletSprite.push(bullet.sprite);
 					}
 				}
 				//Damage the closest enemy in the same row

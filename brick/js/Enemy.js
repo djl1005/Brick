@@ -19,7 +19,7 @@
 
     var p = Enemy.prototype;
 
-    p.update = function (towers, dt) {
+    p.update = function (towers, bullets, bulletSprite, dt) {
 		//Get the current time
 		var currentTime = Date.now();
 		//Assume we'll be moving
@@ -42,6 +42,16 @@
 						this.moving = false;
 					}
 				}
+			}
+
+			for (var i = 0; i < bullets.length; i++) {
+			    if (bullets[i].y == this.y && bullets[i].x > (this.x -50)) {
+			        this.hp -= bullets[i].atk;
+			        bulletSprite[i].kill();
+			        var dead = bullets.indexOf(bullets[i]);
+			        bullets.splice(dead, 1);
+			        bulletSprite.splice(dead, 1);
+			    }
 			}
 	   }
     }
