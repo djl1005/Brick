@@ -45,7 +45,7 @@
 			}
 
 			for (var i = 0; i < bullets.length; i++) {
-			    if (bullets[i].y == this.y && bullets[i].x > (this.x -50)) {
+			    if (bullets[i].y >= this.y && bullets[i].y <= this.y + 50 && bullets[i].x >= this.x && bullets[i].x <= this.x + 50) {
 			        this.hp -= bullets[i].atk;
 			        bulletSprite[i].kill();
 			        var dead = bullets.indexOf(bullets[i]);

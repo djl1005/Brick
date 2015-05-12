@@ -22,7 +22,7 @@ mainScreen.prototype = {
         game.load.image("punkA", "media/punkA.png", 50, 50);
         game.load.image("towerA", "media/towerA.png", 50, 50);
         game.load.image("towerB", "media/towerB.png", 50, 50);
-        game.load.image("brick", "media/play.png", 50 ,50); // temp for brick
+        game.load.image("brick", "media/brick.png", 15 ,4);
     },
 
     init: function () {
@@ -211,7 +211,7 @@ mainScreen.prototype = {
 		}
 		//Ranged
 		if(this.selectedTower == 1){
-			tempTower = new Tower(x, y, 10, 3, 'towerB', 20, 500, i, j);
+			tempTower = new Tower(x, y, 10, 5, 'towerB', 20, 1000, i, j);
 		}
 		
 		//Spawn the tower and subtract money

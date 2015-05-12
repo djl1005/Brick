@@ -55,7 +55,7 @@
 						//	hitEnemy = i;
 					    //}
 
-					    var bullet = new Bullet(this.x, this.y, this.atk, this.name);
+					    var bullet = new Bullet(this.x + 25, this.y + 25, this.atk, "brick");
 					    bullets.push(bullet);
 					    bulletSprite.push(bullet.sprite);
 					}
