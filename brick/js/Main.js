@@ -21,6 +21,7 @@ mainScreen.prototype = {
         game.load.image("frame", "media/towerFrame.png", 50, 50);
         game.load.image("punkA", "media/punkA.png", 50, 50);
         game.load.image("towerA", "media/towerA.png", 50, 50);
+        game.load.image("towerB", "media/towerB.png", 50, 50);
         game.load.image("brick", "media/play.png", 50 ,50); // temp for brick
     },
 
@@ -39,7 +40,8 @@ mainScreen.prototype = {
 
         this.uiTop = null;	//base for the top ui
         this.uiBot = null;	//base for the bottom ui
-		this.towerASprite = null;
+		this.towerASprite = null;	//towerA image
+		this.towerBSprite = null;	//towerB image
 		
         this.frameArray = [];	//array containing the tower frames
         this.towerArray = [];
@@ -50,17 +52,10 @@ mainScreen.prototype = {
 		this.selectedTower = null;
 		
         this.wave = 0;
+		this.lastTime = Date.now();
+		
         this.money = 100;
 
-
-        this.enemy = {
-            startHP: 5,
-            hp: 5,
-            atk: 1,
-            x: 500,
-            y: 175,
-            active: true
-        };
     },
 	
     create: function(){
@@ -91,6 +86,7 @@ mainScreen.prototype = {
         this.uiBot.scale.y = 0.5;
 		
 		this.towerASprite = game.add.sprite(0, this.gameHeight - this.tileSize, "towerA");
+		this.towerBSprite = game.add.sprite(50, this.gameHeight - this.tileSize, "towerB");
 		
         //Frames for bottom ui
         for(var i = 0; i < this.fieldSizeCol; i++){
@@ -108,16 +104,22 @@ mainScreen.prototype = {
     },
 
     update: function() {
+		//Update time
+		var currentTime = Date.now();
+		var dt = currentTime - this.lastTime;
+		this.lastTime = currentTime;
+	
+		//Damage towers and enemies
+        this.dealDamage(dt);
+		
         //Enemy
-        this.damageEnemies();
         for (var i = 0; i < this.enemyArray.length; i++) {
             //Move the enemy
-            this.enemySpriteArray[i].position.x += -1;
-            this.enemyArray[i].x += -1;
+            this.enemyArray[i].move(this.enemyArray, this.enemySpriteArray, i);
 	
             if (this.enemyArray[i].hp <= 0) {
                 //Give the player some cash
-                this.money += this.enemyArray[i].startHP;
+                this.money += this.enemyArray[i].reward;
                 //Kill the enemy
                 this.enemySpriteArray[i].kill();
                 var dead = this.enemyArray.indexOf(this.enemyArray[i]);
@@ -125,6 +127,18 @@ mainScreen.prototype = {
                 this.enemySpriteArray.splice( dead, 1 );
             }
         }
+		
+		//Towers
+		for (var i = 0; i < this.towerArray.length; i++){
+			if(this.towerArray[i].hp <= 0){
+                //Kill the tower
+				this.tileArray[this.towerArray[i].arrayI][this.towerArray[i].arrayJ].hasTower = false;
+                this.towerSpriteArray[i].kill();
+                var dead = this.towerArray.indexOf(this.towerArray[i]);
+                this.towerArray.splice( dead, 1 );
+                this.towerSpriteArray.splice( dead, 1 );
+			}
+		}
 		
         //For now, spawn  more enemies when none are left
         if(this.enemyArray.length == 0){
@@ -145,7 +159,7 @@ mainScreen.prototype = {
         for (var i = 0; i < this.fieldSizeRow; i++) {
             for (var j = 0; j < this.fieldSizeCol; j++) {
                 if ( !this.tileArray[i][j].hasTower && this.tileArray[i][j].hasBeenClicked(x, y)) {
-                    this.spawnTower(x, y, i, j);
+                    this.spawnTower(x, y, i, j, i, j);
                 }
 				
 				
@@ -169,8 +183,7 @@ mainScreen.prototype = {
             //Get the spawn row
             var spawnLoc = Math.floor((Math.random() * 5) + 1) * this.tileSize;
             //Make a new enemy
-            var tempEnemy = JSON.parse(JSON.stringify(this.enemy));
-            tempEnemy.y = spawnLoc;
+            var tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500);
             this.enemyArray.push(tempEnemy);
             //Add the sprite
             var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, "punkA");
@@ -185,14 +198,18 @@ mainScreen.prototype = {
 		
 		//Check what tower is selected
 		var tempTower = null;
+		//Melee
 		if(this.selectedTower == 0){
-			tempTower = new Tower(x, y, 5, 1, 'towerA', 10);
+			tempTower = new Tower(x, y, 30, 1, 'towerA', 10, 500, i, j);
+		}
+		//Ranged
+		if(this.selectedTower == 1){
+			tempTower = new Tower(x, y, 10, 3, 'towerB', 20, 500, i, j);
 		}
 		
 		//Spawn the tower and subtract money
 		if(tempTower != null){
 			if(this.money >= tempTower.cost){
-				console.log("Money: " + this.money + ", Tower: " + tempTower.cost);
 				this.towerArray.push(tempTower);
 				this.towerSpriteArray.push(tempTower.sprite);
 				this.money -= tempTower.cost;
@@ -203,11 +220,16 @@ mainScreen.prototype = {
 		}
 	},
 
-	//Deal damage to enemies
-damageEnemies: function(){
-    for(var j = 0; j < this.towerArray.length; j++){
-		this.towerArray[j].update(this.enemyArray);
-    }
-}
+	//Deal damage to enemies and towers
+	dealDamage: function(dt){
+		//Enemies
+		for(var i = 0; i < this.towerArray.length; i++){
+			this.towerArray[i].update(this.enemyArray, dt);
+		}
+		//Towers
+		for(var i = 0; i < this.enemyArray.length; i++){
+			this.enemyArray[i].update(this.towerArray, dt);
+		}
+	}
 
 };
