@@ -12,6 +12,7 @@ var mainScreen = function (game) {
     this.waveText = null;
     this.money = null;	//How much money you have
     this.moneyText = null;
+	this.costText = null;	//Cost of the currently selected tower
 }
 
 mainScreen.prototype = {
@@ -51,13 +52,17 @@ mainScreen.prototype = {
         this.bulletArray = [];
         this.bulletSpriteArray = [];
 		
+		this.wave = null;	//The current wave
+		this.waveEnemies = [];	//The enemies of the wave
+		this.maxSpawn = 10;		//The maximum amount of enemies to spawn at once
+		
 		this.selectedTower = null;
 		
-        this.wave = 0;
+        this.waveNumber = 1;
+		this.lastTime = Date.now();
 		this.lastTime = Date.now();
 		
         this.money = 100;
-
     },
 	
     create: function(){
@@ -73,9 +78,6 @@ mainScreen.prototype = {
                 this.tileGroup.add(tempTile.sprite);
             }
         }
-
-        //Enemy
-        this.spawnEnemy(2);
 		
         //UI top and bottom
         this.uiTop = game.add.sprite(0, 0, "uiBase");
@@ -97,12 +99,17 @@ mainScreen.prototype = {
             this.frameArray[i] = frame;
         }
 		
-        //Text for wave and money
-        this.waveText = game.add.text(10, this.tileSize/4, "Wave " + this.wave, {font: '20px Arial', fill: '#fff'});
+        //Text for wave, money, and tower cost
+        this.waveText = game.add.text(10, this.tileSize/4, "Wave " + this.waveNumber, {font: '20px Arial', fill: '#fff'});
 		
         this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money, { font: '20px Arial', fill: '#fff' });
+		
+		this.costText = game.add.text(300, this.tileSize / 4, "Tower Cost: ", { font: '20px Arial', fill: '#fff' });
 
         game.input.onDown.add(this.click, this);
+		
+		//Wave1
+		this.makeWave(10, 1);
     },
 
     update: function() {
@@ -145,15 +152,29 @@ mainScreen.prototype = {
         //Bullets
 		for (var i = 0; i < this.bulletArray.length; i++) {
 		    this.bulletArray[i].move(this.bulletArray, this.bulletSpriteArray, i);
+			if(this.bulletArray[i].sprite.position.x > this.gameWidth){
+			    this.bulletSpriteArray[i].kill();
+			    var dead = this.bulletArray.indexOf(this.bulletArray[i]);
+			    this.bulletArray.splice(dead, 1);
+			    this.bulletSpriteArray.splice(dead, 1);
+			}
 		}
 		
-        //For now, spawn  more enemies when none are left
+        this.wave.update(this.enemyArray, this.enemySpriteArray);
+		
+		//Spawn the next wave
         if(this.enemyArray.length == 0){
-            this.spawnEnemy(2);
+			this.waveNumber += 1;
+			//Don't spawn more than the maximum amount to prevent lag
+			if(this.waveNumber <= this.maxSpawn)
+				this.makeWave(10 * this.waveNumber, this.waveNumber);
+			else
+				this.makeWave(10 * this.waveNumber, this.maxSpawn);
         }
 		
-        //Update Money Text
+        //Update  Text
         this.moneyText.setText("$" + this.money);
+		this.waveText.setText("Wave " + this.waveNumber);
 		
     },
 	
@@ -182,19 +203,21 @@ mainScreen.prototype = {
         //Placing logic goes here
         //Use button to determine which was pressed
 		this.selectedTower = button.num;
+		
+		if(button.num == 0)
+			this.costText.setText("Tower Cost: 10");
+		if(button.num == 1)
+			this.costText.setText("Tower Cost: 20");
     },
 	
-    //Spawn a number of enemies
+    //Add enemies to a wave
     spawnEnemy: function(num){
         for(var i = 0; i < num; i++){
             //Get the spawn row
             var spawnLoc = Math.floor((Math.random() * 5) + 1) * this.tileSize;
             //Make a new enemy
             var tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500);
-            this.enemyArray.push(tempEnemy);
-            //Add the sprite
-            var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, "punkA");
-            this.enemySpriteArray.push(tempSprite);
+            this.waveEnemies.push(tempEnemy);
         }
     },
 	
@@ -237,6 +260,15 @@ mainScreen.prototype = {
 		for(var i = 0; i < this.enemyArray.length; i++){
 		    this.enemyArray[i].update(this.towerArray, this.bulletArray, this.bulletSpriteArray, dt);
 		}
+	},
+	
+	//Makes a new wave, allows you to specify amount of enemies in the wave, as well as how many spawn at once
+	makeWave: function(total, perSpawn){
+		this.wave = null;
+		this.waveEnemies = [];
+		this.spawnEnemy(total);
+		var tempWave = new Wave(this.waveEnemies, 2000, perSpawn, total);
+		this.wave = tempWave;
 	}
 
 };

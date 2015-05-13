@@ -59,7 +59,7 @@
 	p.move = function(array, spriteArray, i){
 		if(this.moving){
 			//Move the enemy
-			spriteArray[i].position.x += -1;
+			spriteArray[i].position.x += -1
 			array[i].x += -1;
 		}
 	}
