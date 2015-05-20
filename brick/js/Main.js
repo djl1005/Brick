@@ -135,7 +135,7 @@ mainScreen.prototype = {
         this.dealDamage(dt);
 		
         //Enemy
-        for (var i = 0; i < this.enemyArray.length; i++) {
+        for (var i = this.enemyArray.length -1; i >= 0; i--) {
             //Move the enemy
             this.enemyArray[i].move(this.enemyArray, this.enemySpriteArray, i);
 	
