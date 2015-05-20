@@ -10,11 +10,14 @@ var mainScreen = function (game) {
 
     this.bombReady = false;
 
+    this.pasue = true;
+
     this.wave = null;	//What wave we're on
     this.waveText = null;
     this.money = null;	//How much money you have
     this.moneyText = null;
     this.costText = null;	//Cost of the currently selected tower
+    
     this.bomb = {
         x: 25,
         y: 75,
@@ -84,6 +87,8 @@ mainScreen.prototype = {
         game.load.image("bomb", "media/reticle.png", 50, 50);
         game.load.image("brick", "media/brick.png", 15, 4);
         game.load.image("brickLaser", "media/BrickLaser.png", 500, 4);
+        game.load.image("Help", "media/help.png", 400, 200);
+        game.load.audio("towerCreate", "media/brickscrape.mp3");
     },
 
     init: function () {
@@ -99,7 +104,7 @@ mainScreen.prototype = {
         this.tileArray = [];				// array with all game tiles
         this.tileGroup;                     // group containing all tiles
 
-
+        
 
         this.uiTop = null;	//base for the top ui
         this.uiBot = null;	//base for the bottom ui
@@ -150,7 +155,7 @@ mainScreen.prototype = {
         this.uiTop.scale.x = 0.5;
         this.uiTop.scale.y = 0.5;
 
-
+       
 
         this.uiBot = game.add.sprite(0, this.gameHeight - this.tileSize, "uiBase");
         this.uiBot.scale.x = 0.5;
@@ -173,6 +178,8 @@ mainScreen.prototype = {
             this.frameArray[i] = frame;
         }
 
+        this.help = game.add.sprite(50, 75, "Help");
+
         //Text for wave, money, and tower cost
         this.waveText = game.add.text(10, this.tileSize / 4, "Wave " + this.waveNumber, { font: '20px Arial', fill: '#fff' });
 
@@ -190,90 +197,93 @@ mainScreen.prototype = {
 
     update: function () {
         //Update time
-        var currentTime = Date.now();
-        var dt = currentTime - this.lastTime;
-        this.lastTime = currentTime;
 
-        //Damage towers and enemies
-        this.dealDamage(dt);
+        if (!this.pasue) {
+            var currentTime = Date.now();
+            var dt = currentTime - this.lastTime;
+            this.lastTime = currentTime;
 
-        this.bomb.update(dt);
+            //Damage towers and enemies
+            this.dealDamage(dt);
 
-        //Enemy
-        for (var i = this.enemyArray.length - 1; i >= 0; i--) {
-            //Move the enemy
-            this.enemyArray[i].move(this.enemyArray, this.enemySpriteArray, i);
+            this.bomb.update(dt);
 
-            if (this.enemyArray[i].hp <= 0) {
-                if (this.gainMoney) {
-                    //Give the player some cash if they've earned it
-                    this.money += this.enemyArray[i].reward;
+            //Enemy
+            for (var i = this.enemyArray.length - 1; i >= 0; i--) {
+                //Move the enemy
+                this.enemyArray[i].move(this.enemyArray, this.enemySpriteArray, i);
+
+                if (this.enemyArray[i].hp <= 0) {
+                    if (this.gainMoney) {
+                        //Give the player some cash if they've earned it
+                        this.money += this.enemyArray[i].reward;
+                    }
+                    //Kill the enemy
+                    this.enemySpriteArray[i].destroy();
+                    var dead = this.enemyArray.indexOf(this.enemyArray[i]);
+                    this.enemyArray.splice(dead, 1);
+                    this.enemySpriteArray.splice(dead, 1);
                 }
-                //Kill the enemy
-                this.enemySpriteArray[i].destroy();
-                var dead = this.enemyArray.indexOf(this.enemyArray[i]);
-                this.enemyArray.splice(dead, 1);
-                this.enemySpriteArray.splice(dead, 1);
-            }
-            else if (this.enemyArray[i].x < 0) {
-                //Take some money because the player is bad
-                this.money -= this.enemyArray[i].reward;
-                //Kill the enemy
-                this.enemySpriteArray[i].destroy();
-                var dead = this.enemyArray.indexOf(this.enemyArray[i]);
-                this.enemyArray.splice(dead, 1);
-                this.enemySpriteArray.splice(dead, 1);
+                else if (this.enemyArray[i].x < 0) {
+                    //Take some money because the player is bad
+                    this.money -= this.enemyArray[i].reward;
+                    //Kill the enemy
+                    this.enemySpriteArray[i].destroy();
+                    var dead = this.enemyArray.indexOf(this.enemyArray[i]);
+                    this.enemyArray.splice(dead, 1);
+                    this.enemySpriteArray.splice(dead, 1);
 
 
-                //Lose if an enemy gets to the end when you have no money
-                if (this.money <= 0) {
-                    this.game.state.start('End');
+                    //Lose if an enemy gets to the end when you have no money
+                    if (this.money <= 0) {
+                        this.game.state.start('End');
+                    }
                 }
             }
-        }
 
-        //If we called the cops, gain money for next kills
-        if (this.gainMoney == false)
-            this.gainMoney = true;
+            //If we called the cops, gain money for next kills
+            if (this.gainMoney == false)
+                this.gainMoney = true;
 
-        //Towers
-        for (var i = 0; i < this.towerArray.length; i++) {
-            if (this.towerArray[i].hp <= 0) {
-                //Kill the tower
-                this.tileArray[this.towerArray[i].arrayI][this.towerArray[i].arrayJ].hasTower = false;
-                this.towerSpriteArray[i].destroy();
-                var dead = this.towerArray.indexOf(this.towerArray[i]);
-                this.towerArray.splice(dead, 1);
-                this.towerSpriteArray.splice(dead, 1);
+            //Towers
+            for (var i = 0; i < this.towerArray.length; i++) {
+                if (this.towerArray[i].hp <= 0) {
+                    //Kill the tower
+                    this.tileArray[this.towerArray[i].arrayI][this.towerArray[i].arrayJ].hasTower = false;
+                    this.towerSpriteArray[i].destroy();
+                    var dead = this.towerArray.indexOf(this.towerArray[i]);
+                    this.towerArray.splice(dead, 1);
+                    this.towerSpriteArray.splice(dead, 1);
+                }
             }
-        }
 
-        //Bullets
-        for (var i = 0; i < this.bulletArray.length; i++) {
-            this.bulletArray[i].move(this.bulletArray, this.bulletSpriteArray, i);
-            if (this.bulletArray[i].sprite.position.x > this.gameWidth) {
-                this.bulletSpriteArray[i].destroy();
-                var dead = this.bulletArray.indexOf(this.bulletArray[i]);
-                this.bulletArray.splice(dead, 1);
-                this.bulletSpriteArray.splice(dead, 1);
+            //Bullets
+            for (var i = 0; i < this.bulletArray.length; i++) {
+                this.bulletArray[i].move(this.bulletArray, this.bulletSpriteArray, i);
+                if (this.bulletArray[i].sprite.position.x > this.gameWidth) {
+                    this.bulletSpriteArray[i].destroy();
+                    var dead = this.bulletArray.indexOf(this.bulletArray[i]);
+                    this.bulletArray.splice(dead, 1);
+                    this.bulletSpriteArray.splice(dead, 1);
+                }
             }
+
+            this.wave.update(this.enemyArray, this.enemySpriteArray);
+
+            //Spawn the next wave
+            if (this.enemyArray.length == 0) {
+                this.waveNumber += 1;
+                //Don't spawn more than the maximum amount to prevent lag
+                if (this.waveNumber <= this.maxSpawn)
+                    this.makeWave(10 * this.waveNumber, this.waveNumber);
+                else
+                    this.makeWave(10 * this.waveNumber, this.maxSpawn);
+            }
+
+            //Update  Text
+            this.moneyText.setText("$" + this.money);
+            this.waveText.setText("Wave " + this.waveNumber);
         }
-
-        this.wave.update(this.enemyArray, this.enemySpriteArray);
-
-        //Spawn the next wave
-        if (this.enemyArray.length == 0) {
-            this.waveNumber += 1;
-            //Don't spawn more than the maximum amount to prevent lag
-            if (this.waveNumber <= this.maxSpawn)
-                this.makeWave(10 * this.waveNumber, this.waveNumber);
-            else
-                this.makeWave(10 * this.waveNumber, this.maxSpawn);
-        }
-
-        //Update  Text
-        this.moneyText.setText("$" + this.money);
-        this.waveText.setText("Wave " + this.waveNumber);
 
     },
 
@@ -298,6 +308,15 @@ mainScreen.prototype = {
         if (game.input.keyboard.isDown(Phaser.Keyboard.S)) this.bomb.vY += this.bomb.speed;
         if (game.input.keyboard.isDown(Phaser.Keyboard.A)) this.bomb.vX -= this.bomb.speed;
         if (game.input.keyboard.isDown(Phaser.Keyboard.D)) this.bomb.vX += this.bomb.speed;
+
+        if (game.input.keyboard.isDown(Phaser.Keyboard.H)) {
+            this.pasue = !this.pasue;
+            if (this.pasue) {
+                this.help = game.add.sprite(50, 75, "Help");
+            } else {
+                this.help.kill();
+            }
+        }
 
         if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
             if (this.bomb.fire()) {
@@ -412,6 +431,7 @@ mainScreen.prototype = {
                 this.towerSpriteArray.push(tempTower.sprite);
                 this.money -= tempTower.cost;
                 this.tileArray[i][j].hasTower = true;
+                game.sound.play("towerCreate", .25);
             }
             else
                 tempTower.sprite.kill();
