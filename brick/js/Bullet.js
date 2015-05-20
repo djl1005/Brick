@@ -17,8 +17,14 @@
     }
 
     p.move = function (array, spriteArray, i) {
-        spriteArray[i].position.x += 1;
-        array[i].x += 1;
+		if(this.name == "brickLaser"){
+			spriteArray[i].position.x += 15;
+			array[i].x += 15;
+		}
+		else{
+			spriteArray[i].position.x += 2;
+			array[i].x += 2;
+		}
     }
 
     return Bullet;

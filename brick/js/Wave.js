@@ -34,7 +34,7 @@
             var tempEnemy = this.enemyArray[i];
             gameArray.push(tempEnemy);
             //Add the sprite
-            var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, "punkA");
+            var tempSprite = game.add.sprite(tempEnemy.x, tempEnemy.y, tempEnemy.name);
             gameSpriteArray.push(tempSprite);
         }
 		this.nextIndex += this.spawnNum;

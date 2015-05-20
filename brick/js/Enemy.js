@@ -25,7 +25,6 @@
 		var currentTime = Date.now();
 		//Assume we'll be moving
 		this.moving = true;
-		if(this.name == "punkA"){
 			//Same row?
 			for(var i = 0; i < towers.length; i++){
 				if(towers[i].y == this.y)
@@ -54,7 +53,6 @@
 			        bulletSprite.splice(dead, 1);
 			    }
 			}
-	   }
     }
 	
 	p.move = function(array, spriteArray, i){

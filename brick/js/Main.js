@@ -21,9 +21,15 @@ mainScreen.prototype = {
         game.load.image("uiBase", "media/uiBase.png", 1000, 100);
         game.load.image("frame", "media/towerFrame.png", 50, 50);
         game.load.image("punkA", "media/punkA.png", 50, 50);
+        game.load.image("punkB", "media/punkB.png", 50, 50);
+        game.load.image("punkC", "media/punkC.png", 50, 50);
         game.load.image("towerA", "media/towerA.png", 50, 50);
         game.load.image("towerB", "media/towerB.png", 50, 50);
+        game.load.image("towerC", "media/towerC.png", 50, 50);
+        game.load.image("towerD", "media/towerD.png", 50, 50);
+		game.load.image("cop", "media/cop.png", 50, 50);
         game.load.image("brick", "media/brick.png", 15 ,4);
+        game.load.image("brickLaser", "media/BrickLaser.png", 500 ,4);
     },
 
     init: function () {
@@ -43,6 +49,9 @@ mainScreen.prototype = {
         this.uiBot = null;	//base for the bottom ui
 		this.towerASprite = null;	//towerA image
 		this.towerBSprite = null;	//towerB image
+		this.towerCSprite = null;	//towerC image
+		this.towerDSprite = null;	//towerD image
+		this.copSprite = null;		//cop image
 		
         this.frameArray = [];	//array containing the tower frames
         this.towerArray = [];
@@ -62,7 +71,8 @@ mainScreen.prototype = {
 		this.lastTime = Date.now();
 		this.lastTime = Date.now();
 		
-        this.money = 100;
+        this.money = 150;
+		this.gainMoney = true;
     },
 	
     create: function(){
@@ -91,6 +101,9 @@ mainScreen.prototype = {
 		
 		this.towerASprite = game.add.sprite(0, this.gameHeight - this.tileSize, "towerA");
 		this.towerBSprite = game.add.sprite(50, this.gameHeight - this.tileSize, "towerB");
+		this.towerBSprite = game.add.sprite(100, this.gameHeight - this.tileSize, "towerC");
+		this.towerBSprite = game.add.sprite(150, this.gameHeight - this.tileSize, "towerD");
+		this.copSprite = game.add.sprite(450, this.gameHeight - this.tileSize, "cop");
 		
         //Frames for bottom ui
         for(var i = 0; i < this.fieldSizeCol; i++){
@@ -102,7 +115,7 @@ mainScreen.prototype = {
         //Text for wave, money, and tower cost
         this.waveText = game.add.text(10, this.tileSize/4, "Wave " + this.waveNumber, {font: '20px Arial', fill: '#fff'});
 		
-        this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money, { font: '20px Arial', fill: '#fff' });
+        this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money , { font: '20px Arial', fill: '#fff' });
 		
 		this.costText = game.add.text(300, this.tileSize / 4, "Tower Cost: ", { font: '20px Arial', fill: '#fff' });
 
@@ -127,15 +140,30 @@ mainScreen.prototype = {
             this.enemyArray[i].move(this.enemyArray, this.enemySpriteArray, i);
 	
             if (this.enemyArray[i].hp <= 0) {
-                //Give the player some cash
-                this.money += this.enemyArray[i].reward;
+				if(this.gainMoney){
+					//Give the player some cash if they've earned it
+					this.money += this.enemyArray[i].reward;
+				}
                 //Kill the enemy
                 this.enemySpriteArray[i].kill();
                 var dead = this.enemyArray.indexOf(this.enemyArray[i]);
                 this.enemyArray.splice( dead, 1 );
                 this.enemySpriteArray.splice( dead, 1 );
             }
+			else if(this.enemyArray[i].x < 0){
+				//Take some money because the player is bad
+				this.money -= this.enemyArray[i].reward;
+                //Kill the enemy
+                this.enemySpriteArray[i].kill();
+                var dead = this.enemyArray.indexOf(this.enemyArray[i]);
+                this.enemyArray.splice( dead, 1 );
+                this.enemySpriteArray.splice( dead, 1 );
+			}
         }
+		
+		//If we called the cops, gain money for next kills
+		if(this.gainMoney == false)
+			this.gainMoney = true;
 		
 		//Towers
 		for (var i = 0; i < this.towerArray.length; i++){
@@ -186,7 +214,7 @@ mainScreen.prototype = {
 			
         for (var i = 0; i < this.fieldSizeRow; i++) {
             for (var j = 0; j < this.fieldSizeCol; j++) {
-                if ( !this.tileArray[i][j].hasTower && this.tileArray[i][j].hasBeenClicked(x, y)) {
+                if ( !this.tileArray[i][j].hasTower && this.tileArray[i][j].hasBeenClicked(x, y) && x < this.gameWidth - 50) {
                     this.spawnTower(x, y, i, j, i, j);
                 }
 				
@@ -207,7 +235,26 @@ mainScreen.prototype = {
 		if(button.num == 0)
 			this.costText.setText("Tower Cost: 10");
 		if(button.num == 1)
+			this.costText.setText("Tower Cost: 30");
+		if(button.num == 2)
 			this.costText.setText("Tower Cost: 20");
+		if(button.num == 3)
+			this.costText.setText("Tower Cost: 100");
+			
+		//Cop powerup
+		if(button.num == 9){
+			//Do we have enough money
+			if(this.money >= 100){
+				//Spend money and kill enemies
+				this.money -= 100;
+				for(var i = 0; i < this.enemyArray.length; i++){
+					this.enemyArray[i].hp -= 100;
+				}
+				
+				//No money for cops
+				this.gainMoney = false;
+			}
+		}
     },
 	
     //Add enemies to a wave
@@ -234,12 +281,12 @@ mainScreen.prototype = {
 
                 //fast enemy
                 case 3:
-                    tempEnemy = new Enemy(500, spawnLoc, 10, 1, "punkA", 200, 2);
+                    tempEnemy = new Enemy(500, spawnLoc, 10, 1, "punkB", 200, 2);
                     break;
 
                 //fat enemy
                 case 4:
-                    tempEnemy = new Enemy(500, spawnLoc, 50, 3, "punkA", 1000, 0.5);
+                    tempEnemy = new Enemy(500, spawnLoc, 50, 3, "punkC", 1000, 0.5);
                     break;
             }
             this.waveEnemies.push(tempEnemy);
@@ -259,8 +306,17 @@ mainScreen.prototype = {
 		}
 		//Ranged
 		if(this.selectedTower == 1){
-			tempTower = new Tower(x, y, 10, 5, 'towerB', 20, 1000, i, j);
+			tempTower = new Tower(x, y, 10, 5, 'towerB', 30, 1000, i, j);
 		}
+		//Blockade
+		if(this.selectedTower == 2){
+			tempTower = new Tower(x, y, 60, 0, 'towerC', 20, 1000, i, j);
+		}
+		//Ranged
+		if(this.selectedTower == 3){
+			tempTower = new Tower(x, y, 30, 30, 'towerD', 100, 5000, i, j);
+		}
+		
 		
 		//Spawn the tower and subtract money
 		if(tempTower != null){

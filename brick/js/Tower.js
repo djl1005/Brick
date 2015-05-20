@@ -66,6 +66,36 @@
 			
 			this.lastAtk = currentTime;
 			}
+			
+			//D is a wall, no attack
+			
+			//Brick Rail Gun
+			if(this.name == "towerD"){
+				var closestDist = 1000;
+				var hitEnemy = null;
+				//Same row?
+				for(var i = 0; i < enemies.length; i++){
+					if(enemies[i].y == this.y)
+					{
+						//New closest enemy?
+						//var dist = enemies[i].x - this.x;
+						//if(dist <= closestDist && dist >= 0){
+						//	closestDist = dist;
+						//	hitEnemy = i;
+					    //}
+						enemies[i].hp -= this.atk
+
+					    var bullet = new Bullet(this.x + 25, this.y + 25, 0, "brickLaser");
+					    bullets.push(bullet);
+					    bulletSprite.push(bullet.sprite);
+					}
+				}
+				//Damage the closest enemy in the same row
+				if(hitEnemy != null)
+					enemies[hitEnemy].hp -= this.atk
+			
+			this.lastAtk = currentTime;
+			}
 	   }
     }
 
