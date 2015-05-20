@@ -89,6 +89,7 @@ mainScreen.prototype = {
         game.load.image("brickLaser", "media/BrickLaser.png", 500, 4);
         game.load.image("Help", "media/help.png", 400, 200);
         game.load.audio("towerCreate", "media/brickscrape.mp3");
+        game.load.audio("bgm", "media/MeatballParade.mp3");
     },
 
     init: function () {
@@ -186,6 +187,8 @@ mainScreen.prototype = {
         this.moneyText = game.add.text(100, this.tileSize / 4, "$" + this.money, { font: '20px Arial', fill: '#fff' });
 
         this.costText = game.add.text(300, this.tileSize / 4, "Tower Cost: ", { font: '20px Arial', fill: '#fff' });
+
+        game.sound.play("bgm", .5, true, false);
 
         game.input.onDown.add(this.click, this);
 
