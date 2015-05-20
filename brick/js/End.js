@@ -1,6 +1,9 @@
 "use strict";
 
-var endScreen = function (game) { }
+var endScreen = function (game) { 
+	this.topWaveText = null;
+	this.waveText = null;
+}
 
 endScreen.prototype = {
     preload: function () {
@@ -20,6 +23,12 @@ endScreen.prototype = {
 
         var playButton = this.game.add.button(250, 275, "play", this.playGame, this);
         playButton.anchor.setTo(0.5, 0.5);
+		
+		this.topWave = localStorage.topWave;
+		this.wavesSurvived = localStorage.wavesSurvived;
+		
+		this.waveText = game.add.text(10, 320, "You survived " + this.wavesSurvived + " waves.", { font: '20px Arial', fill: 'black' });
+		this.topWaveText = game.add.text(270, 320, "Most waves survived: " + this.topWave, { font: '20px Arial', fill: 'black' });
     },
 
     playGame: function () {

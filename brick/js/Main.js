@@ -239,6 +239,18 @@ mainScreen.prototype = {
 
                     //Lose if an enemy gets to the end when you have no money
                     if (this.money <= 0) {
+					
+						//New high score?
+						var topWave = localStorage.topWave;
+						
+						if(topWave == null || topWave <this.waveNumber){
+							localStorage.topWave = this.waveNumber;
+							console.log("New top wave: " + localStorage.topWave);
+						}
+							
+						//Store last wave survived
+						localStorage.wavesSurvived = this.waveNumber;
+							
                         this.game.state.start('End');
                     }
                 }
