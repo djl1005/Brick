@@ -20,8 +20,8 @@ var mainScreen = function (game) {
         y: 75,
         r: 25,
         damage: 30,
-        time: 5,
-        timer: 5,
+        time: 500,
+        timer: 1000,
         vX: 0,
         vY: 0,
         sprite: undefined,
@@ -29,7 +29,12 @@ var mainScreen = function (game) {
         speed: 1,
 
         update: function (dt) {
-            if (this.timer > 0) this.timer -= dt;
+            if (this.timer > 0) {
+                this.timer -= dt;
+                this.sprite.alpha = .1;
+            } else {
+                this.sprite.alpha = 1;
+            }
             this.x += this.vX * dt;
             this.y += this.vY * dt;
 
@@ -298,8 +303,7 @@ mainScreen.prototype = {
             if (this.bomb.fire()) {
                 for (var i = 0; i < this.enemyArray.length; i++) {
                     if (this.bomb.colide(this.enemyArray[i].x, this.enemyArray[i].y, 25)) {
-                        this.enemyArray[i].hp -= this.bomb.damage;
-                        console.log("hit");
+                        this.enemyArray[i].hp -= this.bomb.damage; 
                     }
 
                 }
@@ -310,7 +314,7 @@ mainScreen.prototype = {
     //Selects a tower to place
     buyTower: function (button) {
         //Testing to make sure its selecting the right frame
-        console.log("Tower Button " + button.num + " pressed.");
+        //console.log("Tower Button " + button.num + " pressed.");
 
         //Placing logic goes here
         //Use button to determine which was pressed
