@@ -48,9 +48,11 @@
 			    if (bullets[i].y >= this.y && bullets[i].y <= this.y + 50 && bullets[i].x >= this.x && bullets[i].x <= this.x + 50) {
 			        this.hp -= bullets[i].atk;
 			        bulletSprite[i].kill();
-			        var dead = bullets.indexOf(bullets[i]);
-			        bullets.splice(dead, 1);
-			        bulletSprite.splice(dead, 1);
+					if(bullets[i].name != "brickLaser"){
+						var dead = bullets.indexOf(bullets[i]);
+						bullets.splice(dead, 1);
+						bulletSprite.splice(dead, 1);
+					}
 			    }
 			}
     }

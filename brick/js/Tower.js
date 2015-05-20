@@ -83,9 +83,9 @@
 						//	closestDist = dist;
 						//	hitEnemy = i;
 					    //}
-						enemies[i].hp -= this.atk
+						//enemies[i].hp -= this.atk
 
-					    var bullet = new Bullet(this.x + 25, this.y + 25, 0, "brickLaser");
+					    var bullet = new Bullet(this.x + 25, this.y + 25, this.atk, "brickLaser");
 					    bullets.push(bullet);
 					    bulletSprite.push(bullet.sprite);
 					}

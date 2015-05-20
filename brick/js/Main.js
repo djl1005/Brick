@@ -71,7 +71,7 @@ mainScreen.prototype = {
 		this.lastTime = Date.now();
 		this.lastTime = Date.now();
 		
-        this.money = 150;
+        this.money = 100;
 		this.gainMoney = true;
     },
 	
@@ -158,6 +158,11 @@ mainScreen.prototype = {
                 var dead = this.enemyArray.indexOf(this.enemyArray[i]);
                 this.enemyArray.splice( dead, 1 );
                 this.enemySpriteArray.splice( dead, 1 );
+				
+				//Lose if an enemy gets to the end when you have no money
+				if(this.money <= 0){
+					this.game.state.start('End');
+				}
 			}
         }
 		
@@ -270,23 +275,23 @@ mainScreen.prototype = {
             {
                 //standard enemy
                 case 0:
-                    tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500, 1);
+                    tempEnemy = new Enemy(550, spawnLoc, 20, 1, "punkA", 500, 1);
                     break;
                 case 1:
-                    tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500, 1);
+                    tempEnemy = new Enemy(550, spawnLoc, 20, 1, "punkA", 500, 1);
                     break;
                 case 2:
-                    tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500, 1);
+                    tempEnemy = new Enemy(550, spawnLoc, 20, 1, "punkA", 500, 1);
                     break;
 
                 //fast enemy
                 case 3:
-                    tempEnemy = new Enemy(500, spawnLoc, 10, 1, "punkB", 200, 2);
+                    tempEnemy = new Enemy(550, spawnLoc, 10, 1, "punkB", 200, 2);
                     break;
 
                 //fat enemy
                 case 4:
-                    tempEnemy = new Enemy(500, spawnLoc, 50, 3, "punkC", 1000, 0.5);
+                    tempEnemy = new Enemy(550, spawnLoc, 50, 3, "punkC", 1000, 0.5);
                     break;
             }
             this.waveEnemies.push(tempEnemy);
