@@ -10,7 +10,7 @@ var mainScreen = function (game) {
 
     this.bombReady = false;
 
-    this.pasue = true;
+    
 
     this.wave = null;	//What wave we're on
     this.waveText = null;
@@ -133,6 +133,8 @@ mainScreen.prototype = {
         this.lastTime = Date.now();
         this.lastTime = Date.now();
 
+        this.pasue = true;
+
         this.money = 100;
         this.gainMoney = true;
     },
@@ -188,7 +190,9 @@ mainScreen.prototype = {
 
         this.costText = game.add.text(300, this.tileSize / 4, "Tower Cost: ", { font: '20px Arial', fill: '#fff' });
 
-        game.sound.play("bgm", .5, true, false);
+        game.sound.play("bgm", 0, .5, true, true);
+
+        game.sound.play("bgm", .5, true, true);
 
         game.input.onDown.add(this.click, this);
 
@@ -250,7 +254,7 @@ mainScreen.prototype = {
 							
 						//Store last wave survived
 						localStorage.wavesSurvived = this.waveNumber;
-							
+						//game.sound.stop();
                         this.game.state.start('End');
                     }
                 }
