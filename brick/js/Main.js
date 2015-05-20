@@ -17,7 +17,7 @@ var mainScreen = function (game) {
     this.money = null;	//How much money you have
     this.moneyText = null;
     this.costText = null;	//Cost of the currently selected tower
-    
+
     this.bomb = {
         x: 25,
         y: 75,
@@ -104,7 +104,7 @@ mainScreen.prototype = {
         this.tileArray = [];				// array with all game tiles
         this.tileGroup;                     // group containing all tiles
 
-        
+
 
         this.uiTop = null;	//base for the top ui
         this.uiBot = null;	//base for the bottom ui
@@ -155,7 +155,7 @@ mainScreen.prototype = {
         this.uiTop.scale.x = 0.5;
         this.uiTop.scale.y = 0.5;
 
-       
+
 
         this.uiBot = game.add.sprite(0, this.gameHeight - this.tileSize, "uiBase");
         this.uiBot.scale.x = 0.5;
@@ -304,10 +304,12 @@ mainScreen.prototype = {
     },
 
     key: function () {
-        if (game.input.keyboard.isDown(Phaser.Keyboard.W)) this.bomb.vY -= this.bomb.speed;
-        if (game.input.keyboard.isDown(Phaser.Keyboard.S)) this.bomb.vY += this.bomb.speed;
-        if (game.input.keyboard.isDown(Phaser.Keyboard.A)) this.bomb.vX -= this.bomb.speed;
-        if (game.input.keyboard.isDown(Phaser.Keyboard.D)) this.bomb.vX += this.bomb.speed;
+        if (!this.pasue) {
+            if (game.input.keyboard.isDown(Phaser.Keyboard.W)) this.bomb.vY -= this.bomb.speed;
+            if (game.input.keyboard.isDown(Phaser.Keyboard.S)) this.bomb.vY += this.bomb.speed;
+            if (game.input.keyboard.isDown(Phaser.Keyboard.A)) this.bomb.vX -= this.bomb.speed;
+            if (game.input.keyboard.isDown(Phaser.Keyboard.D)) this.bomb.vX += this.bomb.speed;
+        }
 
         if (game.input.keyboard.isDown(Phaser.Keyboard.H)) {
             this.pasue = !this.pasue;
@@ -322,7 +324,7 @@ mainScreen.prototype = {
             if (this.bomb.fire()) {
                 for (var i = 0; i < this.enemyArray.length; i++) {
                     if (this.bomb.colide(this.enemyArray[i].x, this.enemyArray[i].y, 25)) {
-                        this.enemyArray[i].hp -= this.bomb.damage; 
+                        this.enemyArray[i].hp -= this.bomb.damage;
                     }
 
                 }
