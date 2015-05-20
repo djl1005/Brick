@@ -2,7 +2,7 @@
 
  var Enemy = function () {
 
-    function Enemy(x, y, hp, atk , image, atkRate) {
+    function Enemy(x, y, hp, atk , image, atkRate, spd) {
         this.hp = hp;
 		this.reward = hp;
         this.atk = atk;
@@ -13,6 +13,7 @@
 		this.lastAtk = 0;
 		this.name = image;
 		this.moving = true;
+		this.speed = spd;
 
         //this.sprite.anchor.setTo(0.5, 0.5);
     }
@@ -59,8 +60,8 @@
 	p.move = function(array, spriteArray, i){
 		if(this.moving){
 			//Move the enemy
-			spriteArray[i].position.x += -1
-			array[i].x += -1;
+		    spriteArray[i].position.x += -1 * this.speed;
+			array[i].x += -1 * this.speed;
 		}
 	}
 

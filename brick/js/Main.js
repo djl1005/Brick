@@ -215,8 +215,33 @@ mainScreen.prototype = {
         for(var i = 0; i < num; i++){
             //Get the spawn row
             var spawnLoc = Math.floor((Math.random() * 5) + 1) * this.tileSize;
+            var enemyType = Math.floor((Math.random() * 5));
+            var tempEnemy;
+
             //Make a new enemy
-            var tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500);
+            switch(enemyType)
+            {
+                //standard enemy
+                case 0:
+                    tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500, 1);
+                    break;
+                case 1:
+                    tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500, 1);
+                    break;
+                case 2:
+                    tempEnemy = new Enemy(500, spawnLoc, 20, 1, "punkA", 500, 1);
+                    break;
+
+                //fast enemy
+                case 3:
+                    tempEnemy = new Enemy(500, spawnLoc, 10, 1, "punkA", 200, 2);
+                    break;
+
+                //fat enemy
+                case 4:
+                    tempEnemy = new Enemy(500, spawnLoc, 50, 3, "punkA", 1000, 0.5);
+                    break;
+            }
             this.waveEnemies.push(tempEnemy);
         }
     },
